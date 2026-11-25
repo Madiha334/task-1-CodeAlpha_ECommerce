@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed #{{ order.id }} — VibeMart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="top-strip">
+        <span>⚡ Free Express Shipping on Orders Over $100 • CodeAlpha Task 1</span>
+        <span>Order Saved to SQLite Database</span>
+    </div>
+
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo">⚡ VibeMart</a>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Continue Shopping</a>
+            {% if current_user %}
+                <a href="{{ url_for('my_orders') }}">My Orders</a>
+                <span class="user-pill">Hi, {{ current_user.name }}</span>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+            <a href="{{ url_for('view_cart') }}" class="cart-btn">
+                🛒 Cart <span class="badge">{{ cart_count }}</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="store-container">
+        <section class="glass-panel" style="max-width: 720px; margin: 16px auto;">
+            <span class="sale-badge">ORDER {{ order.status|upper }}</span>
+            <h1 style="font-size: 30px; color: #ffffff; margin: 12px 0 6px;">Thank You, {{ order.customer_name }}!</h1>
+            <p style="color: #e9d5ff; margin-bottom: 20px;">
+                Order <strong>#{{ order.id }}</strong> has been placed successfully. Confirmation sent to <strong>{{ order.customer_email }}</strong>.
+            </p>
+
+            <div style="background: rgba(12, 6, 24, 0.65); border: 1px solid rgba(192, 132, 252, 0.25); border-radius: 14px; padding: 18px; margin-bottom: 20px;">
+                <h3 style="color: #f472b6; font-size: 16px; margin-bottom: 12px;">Items Ordered</h3>
+                {% for item in ordered_items %}
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.08); color:#e2e8f0; font-size:14px;">
+                        <span>{{ item.name }} × {{ item.quantity }}</span>
+                        <strong>${{ "%.2f"|format(item.line_total) }}</strong>
+                    </div>
+                {% endfor %}
+                <div style="display:flex; justify-content:space-between; margin-top:14px; font-size:18px; font-weight:800; color:#fde047;">
+                    <span>Total Paid</span>
+                    <span>${{ "%.2f"|format(order.total_amount) }}</span>
+                </div>
+            </div>
+
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 24px;">
+                <strong>Shipping Address:</strong> {{ order.shipping_address }}
+            </p>
+
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <a href="{{ url_for('index') }}" class="primary-btn">Back to Store</a>
+                {% if current_user %}
+                    <a href="{{ url_for('my_orders') }}" class="btn-details" style="padding:12px 20px;">View My Orders</a>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

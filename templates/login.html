@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — VibeMart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo">⚡ VibeMart</a>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">← Store</a>
+            <a href="{{ url_for('register') }}">Register</a>
+            <a href="{{ url_for('view_cart') }}" class="cart-btn">
+                🛒 Cart <span class="badge">{{ cart_count }}</span>
+            </a>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrap">
+                {% for category, message in messages %}
+                    <div class="flash-msg {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="store-container">
+        <div class="glass-panel auth-card">
+            <h1 style="font-size: 26px; color: #ffffff; margin-bottom: 6px;">Welcome Back</h1>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 22px;">Log in to access your VibeMart account and order history.</p>
+
+            <form action="{{ url_for('login') }}" method="POST">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input id="email" type="email" name="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="primary-btn" style="width: 100%; margin-top: 6px;">Sign In</button>
+            </form>
+
+            <p style="color: #cbd5e1; font-size: 13px; margin-top: 18px; text-align: center;">
+                Don't have an account? <a href="{{ url_for('register') }}" style="color: #f472b6; font-weight: 700; text-decoration: none;">Create one</a>
+            </p>
+        </div>
+    </main>
+</body>
+</html>

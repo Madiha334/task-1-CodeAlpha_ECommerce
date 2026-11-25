@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart & Checkout — VibeMart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="top-strip">
+        <span>⚡ Free Express Shipping on Orders Over $100 • CodeAlpha Task 1</span>
+        <span>Secure Cart & Order Processing</span>
+    </div>
+
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo">⚡ VibeMart</a>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">← Continue Shopping</a>
+            {% if current_user %}
+                <a href="{{ url_for('my_orders') }}">My Orders</a>
+                <span class="user-pill">Hi, {{ current_user.name }}</span>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+            <a href="{{ url_for('view_cart') }}" class="cart-btn">
+                🛒 Cart <span class="badge">{{ cart_count }}</span>
+            </a>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrap">
+                {% for category, message in messages %}
+                    <div class="flash-msg {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="store-container">
+        <h1 style="font-size:28px; margin-bottom:20px; color:#ffffff;">Your Shopping Cart</h1>
+
+        {% if cart_items %}
+            <div class="cart-layout">
+                <div class="glass-panel">
+                    <h3 style="margin-bottom:10px; color:#f472b6;">Cart Items ({{ cart_count }})</h3>
+                    {% for item in cart_items %}
+                        <div class="cart-row">
+                            <div style="display:flex; gap:14px; align-items:center;">
+                                <img src="{{ item.product.image_url }}"
+                                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/' + item.product.image_file) }}';"
+                                     alt="{{ item.product.name }}"
+                                     style="width:64px; height:64px; object-fit:cover; border-radius:10px; background:#fff;">
+                                <div>
+                                    <a href="{{ url_for('product_detail', product_id=item.product.id) }}"
+                                       style="color:#ffffff; font-weight:700; text-decoration:none; font-size:16px;">
+                                        {{ item.product.name }}
+                                    </a>
+                                    <div style="color:#cbd5e1; font-size:13px; margin-top:4px;">
+                                        Unit Price: ${{ "%.2f"|format(item.product.price) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:14px;">
+                                <form action="{{ url_for('update_cart', product_id=item.product.id) }}" method="POST" class="qty-controls">
+                                    <button type="submit" name="action" value="decrease" class="qty-btn">−</button>
+                                    <span style="font-weight:700; min-width:22px; text-align:center;">{{ item.quantity }}</span>
+                                    <button type="submit" name="action" value="increase" class="qty-btn">+</button>
+                                </form>
+
+                                <span style="font-weight:800; color:#f472b6; min-width:72px; text-align:right;">
+                                    ${{ "%.2f"|format(item.line_total) }}
+                                </span>
+
+                                <form action="{{ url_for('update_cart', product_id=item.product.id) }}" method="POST">
+                                    <button type="submit" name="action" value="remove" class="remove-btn">Remove</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="glass-panel">
+                    <h3 style="margin-bottom:16px; color:#f472b6;">Order Summary & Checkout</h3>
+
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#e2e8f0;">
+                        <span>Subtotal</span>
+                        <span>${{ "%.2f"|format(subtotal) }}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px; color:#e2e8f0;">
+                        <span>Shipping</span>
+                        <span>{% if shipping == 0 %}FREE{% else %}${{ "%.2f"|format(shipping) }}{% endif %}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding-top:12px; border-top:1px solid rgba(255,255,255,0.15); margin-bottom:20px; font-size:19px; font-weight:800; color:#fde047;">
+                        <span>Total</span>
+                        <span>${{ "%.2f"|format(grand_total) }}</span>
+                    </div>
+
+                    <form action="{{ url_for('checkout') }}" method="POST">
+                        <div class="form-group">
+                            <label for="customer_name">Full Name</label>
+                            <input id="customer_name" type="text" name="customer_name"
+                                   value="{{ current_user.name if current_user else '' }}"
+                                   placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customer_email">Email Address</label>
+                            <input id="customer_email" type="email" name="customer_email"
+                                   value="{{ current_user.email if current_user else '' }}"
+                                   placeholder="you@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shipping_address">Shipping Address</label>
+                            <textarea id="shipping_address" name="shipping_address" rows="3"
+                                      placeholder="House/Street, City, Postal Code" required></textarea>
+                        </div>
+                        <button type="submit" class="primary-btn" style="width:100%;">Place Order Now</button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="glass-panel" style="text-align:center;">
+                <h3 style="margin-bottom:10px;">Your shopping cart is empty!</h3>
+                <p style="color:#cbd5e1; margin-bottom:20px;">Browse our trending gadgets and add items to your cart.</p>
+                <a href="{{ url_for('index') }}" class="primary-btn">Explore Store</a>
+            </div>
+        {% endif %}
+    </main>
+</body>
+</html>

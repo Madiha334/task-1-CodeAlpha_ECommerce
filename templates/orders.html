@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders — VibeMart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="top-strip">
+        <span>⚡ Free Express Shipping on Orders Over $100 • CodeAlpha Task 1</span>
+        <span>Account Order History</span>
+    </div>
+
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo">⚡ VibeMart</a>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">← Store</a>
+            {% if current_user %}
+                <span class="user-pill">Hi, {{ current_user.name }}</span>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% endif %}
+            <a href="{{ url_for('view_cart') }}" class="cart-btn">
+                🛒 Cart <span class="badge">{{ cart_count }}</span>
+            </a>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrap">
+                {% for category, message in messages %}
+                    <div class="flash-msg {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="store-container">
+        <h1 style="font-size: 28px; color: #ffffff; margin-bottom: 20px;">My Orders</h1>
+
+        {% if orders_list %}
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                {% for entry in orders_list %}
+                    {% set o = entry.order %}
+                    <div class="glass-panel">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+                            <div>
+                                <span class="sale-badge">Order #{{ o.id }}</span>
+                                <span class="cat-tag" style="margin-left:8px;">{{ o.status }}</span>
+                            </div>
+                            <div style="font-size: 18px; font-weight: 800; color: #fde047;">
+                                Total: ${{ "%.2f"|format(o.total_amount) }}
+                            </div>
+                        </div>
+
+                        <p style="color:#cbd5e1; font-size:13px; margin-bottom:12px;">
+                            <strong>Shipping To:</strong> {{ o.shipping_address }}
+                        </p>
+
+                        {% for item in entry.items %}
+                            <div style="display:flex; justify-content:space-between; padding:7px 0; border-top:1px solid rgba(255,255,255,0.08); font-size:14px; color:#e2e8f0;">
+                                <span>{{ item.name }} × {{ item.quantity }}</span>
+                                <span>${{ "%.2f"|format(item.line_total) }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel" style="text-align:center;">
+                <h3 style="margin-bottom: 10px;">You haven't placed any orders yet.</h3>
+                <p style="color: #cbd5e1; margin-bottom: 20px;">Add products to your cart and complete checkout to see them here.</p>
+                <a href="{{ url_for('index') }}" class="primary-btn">Start Shopping</a>
+            </div>
+        {% endif %}
+    </main>
+</body>
+</html>

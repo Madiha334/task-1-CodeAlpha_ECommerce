@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeMart — Full-Stack E-Commerce Store</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="top-strip">
+        <span>⚡ Free Express Shipping on Orders Over $100 • CodeAlpha Task 1</span>
+        <span>Rich Purple + Neon Pink Edition • SQLite Database Active</span>
+    </div>
+
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo">⚡ VibeMart</a>
+
+        <form action="{{ url_for('index') }}" method="GET" class="search-box">
+            {% if selected_category and selected_category != 'All' %}
+                <input type="hidden" name="category" value="{{ selected_category }}">
+            {% endif %}
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Search gadgets, earbuds, smart watches, lifestyle...">
+            <button type="submit">Search</button>
+        </form>
+
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Store</a>
+            {% if current_user %}
+                <a href="{{ url_for('my_orders') }}">My Orders</a>
+                <span class="user-pill">Hi, {{ current_user.name }}</span>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+            <a href="{{ url_for('view_cart') }}" class="cart-btn">
+                🛒 Cart <span class="badge">{{ cart_count }}</span>
+            </a>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrap">
+                {% for category, message in messages %}
+                    <div class="flash-msg {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="store-container">
+        <section class="hero-layout">
+            <!-- Left Categories Sidebar -->
+            <aside class="category-sidebar">
+                <h3>Top Categories</h3>
+                <ul class="cat-list">
+                    {% for cat in categories %}
+                        <li>
+                            <a href="{{ url_for('index', category=cat, q=search_query) }}"
+                               class="{% if selected_category == cat %}active{% endif %}">
+                                {{ cat }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </aside>
+
+            <!-- Center Hero Sale Banner -->
+            <div class="hero-banner">
+                <span class="hero-tag">🔥 MEGA TECH & LIFESTYLE DROP</span>
+                <h1>Upgrade Your Setup With <span>Neon Deals</span></h1>
+                <p>Discover wireless audio, smart wearables, mechanical keyboards, and everyday essentials with instant cart & order tracking.</p>
+                <a href="#catalog-section" class="hero-cta">Explore Products ↓</a>
+            </div>
+
+            <!-- Right Side Promo Cards -->
+            <div class="promo-column">
+                <div class="promo-card">
+                    <div>
+                        <span class="promo-badge">Audio Spotlight</span>
+                        <h4>PulseWave ANC Earbuds</h4>
+                        <p>36h battery & noise cancellation</p>
+                    </div>
+                    <div class="promo-price">$59.99</div>
+                </div>
+                <div class="promo-card">
+                    <div>
+                        <span class="promo-badge">Creator Gear</span>
+                        <h4>SnapShot 4K Action Cam</h4>
+                        <p>Stabilized 4K wide-angle lens</p>
+                    </div>
+                    <div class="promo-price">$149.00</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Catalog Section -->
+        <section id="catalog-section">
+            <div class="section-header">
+                <h2>
+                    {% if selected_category and selected_category != 'All' %}
+                        {{ selected_category }}
+                    {% else %}
+                        Trending Products
+                    {% endif %}
+                </h2>
+                <span>Showing {{ products|length }} item(s){% if search_query %} for "{{ search_query }}"{% endif %}</span>
+            </div>
+
+            {% if products %}
+                <div class="product-grid">
+                    {% for p in products %}
+                        <article class="product-card">
+                            <div>
+                                <div class="card-top">
+                                    {% if p.badge %}
+                                        <span class="sale-badge">{{ p.badge }}</span>
+                                    {% else %}
+                                        <span class="sale-badge">FEATURED</span>
+                                    {% endif %}
+                                    <span class="cat-tag">{{ p.category }}</span>
+                                </div>
+
+                                <div class="product-visual">
+                                    <img src="{{ p.image_url }}"
+                                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/' + p.image_file) }}';"
+                                         alt="{{ p.name }}">
+                                </div>
+
+                                <h3 class="product-title">{{ p.name }}</h3>
+                                <p class="product-desc">{{ p.description }}</p>
+                            </div>
+
+                            <div>
+                                <div class="price-row">
+                                    <span class="current-price">${{ "%.2f"|format(p.price) }}</span>
+                                    {% if p.old_price %}
+                                        <span class="old-price">${{ "%.2f"|format(p.old_price) }}</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-buttons">
+                                    <a href="{{ url_for('product_detail', product_id=p.id) }}" class="btn-details">Details</a>
+                                    <form action="{{ url_for('add_to_cart', product_id=p.id) }}" method="POST" style="flex:1.3; display:flex;">
+                                        <button type="submit" class="btn-cart" style="width:100%;">+ Add to Cart</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="glass-panel" style="text-align:center;">
+                    <h3>No products matched your filter.</h3>
+                    <p style="color:#cbd5e1; margin:10px 0 18px;">Try clearing your search or selecting All categories.</p>
+                    <a href="{{ url_for('index') }}" class="primary-btn">Reset Filters</a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
